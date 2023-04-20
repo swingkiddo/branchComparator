@@ -20,6 +20,16 @@ type Branch struct {
 	Packages []Package `json:"packages"`
 }
 
+func NewBranch(name string) Branch {
+	fmt.Printf("Initializing %s branch...\n", name)
+
+	branch := Branch {Name: name}
+	getBranchPackages(name, &branch)
+	
+	fmt.Printf("%s branch initialized\n", name)
+	return branch
+}
+
 type Package struct {
 	Name string `json:"name"`
 	Epoch int `json:"epoch"`
@@ -44,21 +54,26 @@ func (b Branch) sortPackagesByArchs() map[string][]Package {
 	return sorted
 }
 
-func (b1 Branch) CompareWithAnotherBranch(b2 Branch) map[string][]Package {
-	result := make(map[string][]Package)
+
+func CompareBranches(b1, b2 Branch) map[string]map[string][]Package {
+	var result = map[string]map[string][]Package{}
 	b1SortedPackages := b1.sortPackagesByArchs()
 	b2SortedPackages := b2.sortPackagesByArchs()
 	for arch, b1Packages := range b1SortedPackages {
+		result[arch] = make(map[string][]Package)
 		b2Packages, _ := b2SortedPackages[arch]
-		diff, newer := comparePackages(b1Packages, b2Packages)
-		result["difference"] = diff
-		result["newerPackages"] = newer
+		b1Differences, b2Differences, b1NewerPackages := comparePackages(b1Packages, b2Packages)
+
+		result[arch]["branch1Differences"] = b1Differences
+		result[arch]["branch2Differences"] = b2Differences
+		result[arch]["branch1NewerPackages"] = b1NewerPackages
 	}
 	return result
 }
 
 
 func getBranchPackages(branch_name string, branch interface{}) {
+	fmt.Printf("Getting %s branch data \n", branch_name)
 	url := EXPORT_BRANCH_URL + branch_name
 	resp, err := http.Get(url)
 	if err != nil {
@@ -72,34 +87,38 @@ func getBranchPackages(branch_name string, branch interface{}) {
 	}
 }
 
-func comparePackages(a, b []Package) ([]Package, []Package) {
-	mb := make(map[string]Package, len(b))
+func comparePackages(a, b []Package) ([]Package, []Package, []Package) {
+	branch2MappedPackages := make(map[string]Package, len(b))
     for _, pack:= range b {
-        mb[pack.Name] = pack
+        branch2MappedPackages[pack.Name] = pack
     }
-    var diff []Package
-	var newerPackages []Package
+	var (
+		branch1Differences []Package
+		branch2Differences []Package
+		branch1NewerPackages []Package
+	)
+
     for _, pack := range a {
-        if p, found := mb[pack.Name]; !found {
-            diff = append(diff, pack)
+        if p, found := branch2MappedPackages[pack.Name]; !found {
+            branch1Differences = append(branch1Differences, pack)
         } else {
 			if pack.Release == p.Release {
 				package1Version, _ := version.NewVersion(pack.Version)
 				package2Version, _ := version.NewVersion(p.Version)
 				if package1Version != nil && package2Version != nil {
 					if package1Version.GreaterThan(package2Version) {
-						newerPackages = append(newerPackages, pack)
+						branch1NewerPackages = append(branch1NewerPackages, pack)
 					}
 				}
 			}
-
+			delete(branch2MappedPackages, pack.Name)
 		}
     }
-    return diff, newerPackages
+
+	for _, pack := range branch2MappedPackages {
+		branch2Differences = append(branch2Differences, pack)
+	}
+    return branch1Differences, branch2Differences, branch1NewerPackages
 }
 
-func NewBranch(name string) Branch {
-	branch := Branch {Name: name}
-	getBranchPackages(name, &branch)
-	return branch
-}
+
