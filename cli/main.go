@@ -1,20 +1,6 @@
 /* 
 	This is the CLI for using the branchComparator module. It parses arguments which are the branch names, and then gets packages of this branches, compares them and printing the result as a json string and also writes a result to a json file. 
-	Packages are compared by their architectures. 
-	The point of comparing is to get: 
-		1) Packages of 1 branch which are not included in 2 branch 
-		2) Packages of 2 branch which are not ibcluded in 1 branch
-		3) Packages of 1 branch which are newer than packages in 2 branch
-		
-	Structure of resulting json:
-		{
-			"arch": {
-				"branch1Differences": []Package,
-				"branch2Differences": []Package,
-				"branch1NewerPackages": []Package
-			}...
-		}
-	
+
 	The flags are:
 		-b1
 			The name of the branch you want to comapre
