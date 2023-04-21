@@ -1,5 +1,7 @@
 /* 
-	This is the CLI for using the branchComparator module. It parses arguments which are the branch names, and then gets packages of this branches, compares them and printing the result as a json string and also writes a result to a json file. 
+	This is the CLI for using the branchComparator module. 
+	It parses arguments which are the branch names, and then gets packages of this branches, 
+	compares them and printing the result as a json string and also writes a result to a json file. 
 
 	The flags are:
 		-b1
