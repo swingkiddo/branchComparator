@@ -1,9 +1,9 @@
+
 package branchComparator
 
 import (
 	"fmt"
 	"net/http"
-	// "io"
 	"encoding/json"
 	"github.com/hashicorp/go-version"
 	"log"
@@ -65,9 +65,9 @@ func CompareBranches(b1, b2 Branch) map[string]map[string][]Package {
 		b2Packages, _ := b2SortedPackages[arch]
 		b1Differences, b2Differences, b1NewerPackages := comparePackages(b1Packages, b2Packages)
 
-		result[arch]["branch1Differences"] = b1Differences
-		result[arch]["branch2Differences"] = b2Differences
-		result[arch]["branch1NewerPackages"] = b1NewerPackages
+		result[arch][fmt.Sprintf("%sDifferences", b1.Name)] = b1Differences
+		result[arch][fmt.Sprintf("%sDifferences", b2.Name)] = b2Differences
+		result[arch][fmt.Sprintf("%sNewerPackages", b1.Name)] = b1NewerPackages
 	}
 	return result
 }
