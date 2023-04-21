@@ -6,6 +6,7 @@ import (
 	// "io"
 	"encoding/json"
 	"github.com/hashicorp/go-version"
+	"log"
 )
 
 const (
@@ -21,7 +22,7 @@ type Branch struct {
 }
 
 func NewBranch(name string) Branch {
-	fmt.Printf("Initializing %s branch...\n", name)
+	fmt.Printf("Initializing %s branch started\n", name)
 
 	branch := Branch {Name: name}
 	getBranchPackages(name, &branch)
@@ -73,17 +74,17 @@ func CompareBranches(b1, b2 Branch) map[string]map[string][]Package {
 
 
 func getBranchPackages(branch_name string, branch interface{}) {
-	fmt.Printf("Getting %s branch data \n", branch_name)
+	fmt.Printf("Getting %s branch data... \n", branch_name)
 	url := EXPORT_BRANCH_URL + branch_name
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatalln(err)
 	}
 	defer resp.Body.Close()
 
 	json_err := json.NewDecoder(resp.Body).Decode(branch)
 	if json_err != nil {
-		fmt.Println(err)
+		log.Fatalln(json_err)
 	}
 }
 
