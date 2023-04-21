@@ -25,6 +25,11 @@ func main() {
 	b2Name := flag.String("b2", "", "Name of the branch to compare against")
 	flag.Parse()
 
+	if *b1Name == "" || *b2Name == "" {
+		fmt.Println("You need to set the flags to run the program")
+		os.Exit(1)
+	}
+
 	if _, ok := branches[*b1Name]; !ok {
 		fmt.Printf("%s is unacceptable branch name. API provides only these names: p9, p10, sisyphus\n", *b1Name)
 		os.Exit(1)
