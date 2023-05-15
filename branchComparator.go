@@ -11,7 +11,7 @@ import (
 
 const (
 	API_URL = "https://rdb.altlinux.org/api/"
-	EXPORT_BRANCH_URL = API_URL + "/export/branch_binary_packages/"
+	EXPORT_BRANCH_URL = API_URL + "export/branch_binary_packages/"
 )
 
 
