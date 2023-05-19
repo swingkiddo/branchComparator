@@ -11,7 +11,7 @@ import (
 
 const (
 	API_URL = "https://rdb.altlinux.org/api/"
-	EXPORT_BRANCH_URL = API_URL + "export/branch_binary_packages/"
+	EXPORT_BRANCH_URL = API_URL + "/export/branch_binary_packages/"
 )
 
 
@@ -97,21 +97,28 @@ func comparePackages(a, b []Package) ([]Package, []Package, []Package) {
 		branch1Differences []Package
 		branch2Differences []Package
 		branch1NewerPackages []Package
+
 	)
 
     for _, pack := range a {
         if p, found := branch2MappedPackages[pack.Name]; !found {
             branch1Differences = append(branch1Differences, pack)
         } else {
-			if pack.Release == p.Release {
-				package1Version, _ := version.NewVersion(pack.Version)
-				package2Version, _ := version.NewVersion(p.Version)
-				if package1Version != nil && package2Version != nil {
-					if package1Version.GreaterThan(package2Version) {
-						branch1NewerPackages = append(branch1NewerPackages, pack)
+
+				p1VersionRelease := fmt.Sprintf("%s-%s", pack.Version, pack.Release)
+				p2VersionRelease  := fmt.Sprintf("%s-%s", p.Version, p.Release)
+				if p1VersionRelease == p2VersionRelease {
+					fmt.Println(p)
+					fmt.Println(pack)
+					package1Version, _ := version.NewVersion(pack.Version)
+					package2Version, _ := version.NewVersion(p.Version)
+					if package1Version != nil && package2Version != nil {
+						fmt.Println("norm")
+						if package1Version.GreaterThan(package2Version) {
+							branch1NewerPackages = append(branch1NewerPackages, pack)
+						}
 					}
 				}
-			}
 			delete(branch2MappedPackages, pack.Name)
 		}
     }
