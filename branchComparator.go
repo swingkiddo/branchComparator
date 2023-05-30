@@ -1,12 +1,13 @@
-
 package branchComparator
 
 import (
-	"fmt"
-	"net/http"
 	"encoding/json"
-	"github.com/hashicorp/go-version"
+	"fmt"
 	"log"
+	"net/http"
+	"regexp"
+	"strconv"
+	// "github.com/hashicorp/go-version"
 )
 
 const (
@@ -72,7 +73,6 @@ func CompareBranches(b1, b2 Branch) map[string]map[string][]Package {
 	return result
 }
 
-
 func getBranchPackages(branch_name string, branch interface{}) {
 	fmt.Printf("Getting %s branch data... \n", branch_name)
 	url := EXPORT_BRANCH_URL + branch_name
@@ -85,6 +85,36 @@ func getBranchPackages(branch_name string, branch interface{}) {
 	json_err := json.NewDecoder(resp.Body).Decode(branch)
 	if json_err != nil {
 		log.Fatalln(json_err)
+	}
+}
+
+func isGreater(r1, r2 string) bool {
+	re := regexp.MustCompile("[0-9]+")
+	r1Versions := re.FindAllString(r1, -1)
+	r2Versions := re.FindAllString(r2, -1)
+
+	if len(r1Versions) <= len(r2Versions) {
+		for i, v := range r1Versions {
+			intV1, _ := strconv.ParseInt(v, 10, 64)
+			intV2, _ := strconv.ParseInt(r2Versions[i], 10, 64)
+			if intV1 > intV2 {
+				return true
+			} else if intV1 < intV2 {
+				return false
+			} 
+		}
+		return false
+	} else {
+		for i, v := range r2Versions {
+			intV1, _ := strconv.ParseInt(r1Versions[i], 10, 64)
+			intV2, _ := strconv.ParseInt(v, 10, 64)
+			if intV1 > intV2 {
+				return true
+			} else if intV1 < intV2 {
+				return false
+			} 
+		}
+		return true
 	}
 }
 
@@ -104,21 +134,18 @@ func comparePackages(a, b []Package) ([]Package, []Package, []Package) {
         if p, found := branch2MappedPackages[pack.Name]; !found {
             branch1Differences = append(branch1Differences, pack)
         } else {
-
-				p1VersionRelease := fmt.Sprintf("%s-%s", pack.Version, pack.Release)
-				p2VersionRelease  := fmt.Sprintf("%s-%s", p.Version, p.Release)
-				if p1VersionRelease == p2VersionRelease {
-					fmt.Println(p)
-					fmt.Println(pack)
-					package1Version, _ := version.NewVersion(pack.Version)
-					package2Version, _ := version.NewVersion(p.Version)
-					if package1Version != nil && package2Version != nil {
-						fmt.Println("norm")
-						if package1Version.GreaterThan(package2Version) {
-							branch1NewerPackages = append(branch1NewerPackages, pack)
-						}
-					}
+			// if package versions are not equal, than we need to compare them
+			// if they are equal, we need to compare 
+			if pack.Version != p.Version {
+				if isGreater(pack.Version, p.Version) {
+					branch1NewerPackages = append(branch1NewerPackages, pack)
+				} else if pack.Version == p.Version && pack.Release != p.Release {
+				 	if isGreater(pack.Release, p.Release) {
+						branch1NewerPackages = append(branch1NewerPackages, pack)
+				 	}
 				}
+			}
+
 			delete(branch2MappedPackages, pack.Name)
 		}
     }
