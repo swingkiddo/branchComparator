@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
-	// "github.com/hashicorp/go-version"
 )
 
 const (
@@ -134,7 +133,7 @@ func comparePackages(a, b []Package) ([]Package, []Package, []Package) {
         if p, found := branch2MappedPackages[pack.Name]; !found {
             branch1Differences = append(branch1Differences, pack)
         } else {
-			// if package versions are not equal, than we need to compare them
+			// if package versions are not equal, we need to compare them
 			// if they are equal, we need to compare 
 			if pack.Version != p.Version {
 				if isGreater(pack.Version, p.Version) {
